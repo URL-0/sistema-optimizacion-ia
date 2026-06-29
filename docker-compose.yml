@@ -1,0 +1,38 @@
+services:
+  database:
+    image: mysql:8.0
+    container_name: sistema-optimizacion-ia-database-1
+    environment:
+      - "MYSQL_ROOT_PASSWORD=Desarrollador"
+      - "MYSQL_DATABASE=sistema_inventario"
+    ports:
+      - "3307:3306" 
+    volumes:
+      - ./backend/script.sql:/docker-entrypoint-initdb.d/init.sql
+      - mysql_data:/var/lib/mysql
+
+  backend:
+    build: ./backend
+    container_name: sistema-optimizacion-ia-backend-1
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend:/app
+    environment:
+      - WATCHFILES_FORCE_POLLING=true 
+    depends_on:
+      - database
+
+  frontend:
+    build: ./frontend
+    container_name: sistema-optimizacion-ia-frontend-1
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    depends_on:
+      - backend
+
+volumes:
+  mysql_data:
