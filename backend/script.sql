@@ -66,9 +66,11 @@ SELECT
 FROM transacciones;
 
 
-INSERT INTO usuarios (username, password_hash, nombre_completo, rol) VALUES 
-('admin', 'admin123', 'Carlos Mendoza', 'Admin'),
-('operario', 'operario123', 'Jorge Luis Portal', 'Operario')
+-- Contraseñas de prueba (texto plano, solo para referencia local): admin -> admin123 | operario -> operario123
+-- Los valores de abajo son sus hashes bcrypt; el backend nunca guarda ni compara contraseñas en texto plano.
+INSERT INTO usuarios (username, password_hash, nombre_completo, rol) VALUES
+('admin', '$2b$12$R1w7Cg/e4b6tef/hj//bd.XpQ3o9TJAj8GRqxEUKTiQHGGK52FJCO', 'Carlos Mendoza', 'Admin'),
+('operario', '$2b$12$x.lCIMu9ODog40DBofsfZ.J0StnmPna6M5fdEQd2JH17v4b43EBEe', 'Jorge Luis Portal', 'Operario')
 ON DUPLICATE KEY UPDATE id_usuario=id_usuario;
 
 

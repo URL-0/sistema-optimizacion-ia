@@ -3,7 +3,7 @@ services:
     image: mysql:8.0
     container_name: sistema-optimizacion-ia-database-1
     environment:
-      - "MYSQL_ROOT_PASSWORD=Desarrollador"
+      - "MYSQL_ROOT_PASSWORD=${DB_PASSWORD}"
       - "MYSQL_DATABASE=sistema_inventario"
     ports:
       - "3307:3306" 
@@ -19,7 +19,9 @@ services:
     volumes:
       - ./backend:/app
     environment:
-      - WATCHFILES_FORCE_POLLING=true 
+      - WATCHFILES_FORCE_POLLING=true
+      - DB_PASSWORD=${DB_PASSWORD}
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY}
     depends_on:
       - database
 

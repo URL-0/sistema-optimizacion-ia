@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from routes import productos_route
 from routes import transacciones_route
 from routes import analytics_route
+from routes import auth_route
 
 app = FastAPI(
     title="Sistema de Optimización de Inventarios con IA",
@@ -27,6 +28,7 @@ app.add_middleware(
 )
 
 
+app.include_router(auth_route.router)
 app.include_router(productos_route.router)
 app.include_router(transacciones_route.router)
 app.include_router(analytics_route.router)

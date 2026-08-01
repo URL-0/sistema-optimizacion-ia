@@ -1,10 +1,12 @@
+import os
+
 import mysql.connector
 from mysql.connector import Error
 
 db_config = {
     "host": "database",
     "user": "root",
-    "password": "Desarrollador",  
+    "password": os.environ["DB_PASSWORD"],
     "database": "sistema_inventario",
     "port": 3306
 }

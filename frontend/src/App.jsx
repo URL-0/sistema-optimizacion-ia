@@ -3,7 +3,44 @@ import { useState, useEffect } from 'react'
 function App() {
   const [productos, setProductos] = useState([])
   const [conectado, setConectado] = useState(false)
-  
+
+  const [sesion, setSesion] = useState(() => {
+    const guardada = localStorage.getItem('sesion')
+    return guardada ? JSON.parse(guardada) : null
+  })
+  const [loginForm, setLoginForm] = useState({ username: '', password: '' })
+  const [loginError, setLoginError] = useState('')
+
+  const iniciarSesion = async (e) => {
+    e.preventDefault()
+    setLoginError('')
+    try {
+      const res = await fetch('http://127.0.0.1:8000/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(loginForm)
+      })
+      if (res.ok) {
+        const data = await res.json()
+        const nuevaSesion = { token: data.access_token, username: data.username, rol: data.rol }
+        localStorage.setItem('sesion', JSON.stringify(nuevaSesion))
+        setSesion(nuevaSesion)
+        setLoginForm({ username: '', password: '' })
+      } else {
+        const errData = await res.json()
+        setLoginError(errData.detail || 'No se pudo iniciar sesión')
+      }
+    } catch (error) {
+      console.error("Error al iniciar sesión:", error)
+      setLoginError('No se pudo establecer conexión con el servidor')
+    }
+  }
+
+  const cerrarSesion = () => {
+    localStorage.removeItem('sesion')
+    setSesion(null)
+  }
+
   const [formulario, setFormulario] = useState({
     codigo_barras: '',
     nombre_producto: '',
@@ -80,7 +117,7 @@ function App() {
     try {
       const res = await fetch('http://127.0.0.1:8000/transacciones/venta', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${sesion.token}` },
         body: JSON.stringify({
           codigo_barras: venta.codigo_barras,
           cantidad: parseInt(venta.cantidad),
@@ -121,7 +158,7 @@ function App() {
     try {
       const res = await fetch('http://127.0.0.1:8000/productos/', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${sesion.token}` },
         body: JSON.stringify({
           codigo_barras: formulario.codigo_barras,
           id_categoria: 1,
@@ -151,18 +188,59 @@ function App() {
     }
   }
 
+  if (!sesion) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-8 text-gray-800 font-sans">
+        <div className="w-full max-w-sm bg-white p-8 rounded-2xl shadow-xs border border-gray-100">
+          <h1 className="text-xl font-bold text-slate-900 mb-1">Sistema de Optimización de Inventarios</h1>
+          <p className="text-gray-500 text-sm mb-6">Inicia sesión para continuar</p>
+          <form onSubmit={iniciarSesion} className="space-y-4">
+            <div>
+              <label className="block text-xs font-medium text-gray-500 mb-1">Usuario</label>
+              <input
+                type="text"
+                value={loginForm.username}
+                onChange={(e) => setLoginForm({ ...loginForm, username: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-indigo-500"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-500 mb-1">Contraseña</label>
+              <input
+                type="password"
+                value={loginForm.password}
+                onChange={(e) => setLoginForm({ ...loginForm, password: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-indigo-500"
+              />
+            </div>
+            {loginError && <p className="text-rose-600 text-xs">{loginError}</p>}
+            <button type="submit" className="w-full bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded-xl text-sm font-semibold transition-colors shadow-xs">
+              Ingresar
+            </button>
+          </form>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 p-8 text-gray-800 font-sans">
       <div className="max-w-6xl mx-auto">
-        
+
         <header className="flex justify-between items-center bg-white p-6 rounded-2xl shadow-xs border border-gray-100 mb-8">
           <div>
             <h1 className="text-2xl font-bold text-slate-900">Sistema de Optimización de Inventarios</h1>
             <p className="text-gray-500 text-sm">Control transaccional y analítica predictiva con soporte algorítmico</p>
           </div>
-          <span className={`px-4 py-1.5 rounded-full text-xs font-semibold ${conectado ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-rose-50 text-rose-700 border border-rose-200'}`}>
-            {conectado ? '🟢 Servidor Activo' : '🔴 Desconectado'}
-          </span>
+          <div className="flex items-center gap-4">
+            <span className={`px-4 py-1.5 rounded-full text-xs font-semibold ${conectado ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-rose-50 text-rose-700 border border-rose-200'}`}>
+              {conectado ? '🟢 Servidor Activo' : '🔴 Desconectado'}
+            </span>
+            <span className="text-xs text-gray-500">{sesion.username} ({sesion.rol})</span>
+            <button onClick={cerrarSesion} className="text-xs font-semibold text-gray-500 hover:text-rose-600 transition-colors">
+              Cerrar sesión
+            </button>
+          </div>
         </header>
 
         <section className="bg-white p-6 rounded-2xl shadow-xs border border-gray-100 mb-8">

@@ -1,7 +1,8 @@
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status
 from database.db import obtener_conexion
 from models.producto_model import ProductoCrear
 from mysql.connector import Error
+from services.auth_service import obtener_usuario_actual
 
 router = APIRouter(
     prefix="/productos",
@@ -26,7 +27,7 @@ def listar_productos():
 
 
 @router.post("/", status_code=status.HTTP_201_CREATED)
-def crear_producto(producto: ProductoCrear):
+def crear_producto(producto: ProductoCrear, usuario: dict = Depends(obtener_usuario_actual)):
     """Inserta un nuevo registro de producto en la base de datos MySQL"""
     conexion = obtener_conexion()
     if not conexion:

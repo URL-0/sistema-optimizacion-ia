@@ -1,6 +1,7 @@
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status
 from database.db import obtener_conexion
 from mysql.connector import Error
+from services.auth_service import obtener_usuario_actual
 
 router = APIRouter(
     prefix="/transacciones",
@@ -8,7 +9,7 @@ router = APIRouter(
 )
 
 @router.post("/venta", status_code=status.HTTP_201_CREATED)
-def registrar_simulacion_venta(movimiento: dict):
+def registrar_simulacion_venta(movimiento: dict, usuario: dict = Depends(obtener_usuario_actual)):
     """Registra un movimiento de salida y actualiza el stock físico del producto"""
     conexion = obtener_conexion()
     if not conexion:
